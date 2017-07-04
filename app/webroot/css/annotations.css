@@ -1,0 +1,7 @@
+
+.comment { width: auto; border: 1px solid #cecece; margin-bottom: 5px; }
+.comment .head { padding: 5px; font-weight: bold; background-color: #cecece; }
+.comment .body { padding: 10px; }
+.comment .foot { padding: 5px; }
+
+.comment .head .date { float: right; margin-right: 10px; }

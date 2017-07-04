@@ -1,0 +1,15 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Jun 11, 2015, 1:53:01 PM
+    Author     : Matus
+*/
+
+ul { list-style: none; }
+div { border-bottom: 1px solid #cecece; padding: 20px 0; }
+.synonyms > li:before { content: "="; }
+.synonyms ul li:before { content: "\2261"; margin-left: 10px; }
+.invalid li:before { content: "-"; }
