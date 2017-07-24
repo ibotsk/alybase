@@ -1,6 +1,6 @@
 
-//var prefix = "/AlyssumPortalCake/";
-var prefix = "/";
+var prefix = "/AlyssumPortalCake/";
+//var prefix = "/";
 
 $.fn.center = function () {
     var $this = this;

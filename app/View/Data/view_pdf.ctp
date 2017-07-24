@@ -6,8 +6,8 @@ foreach ($data as $d) :
     ?>
     <div>
         <?php
-        echo $this->Format->detailValue('Newest name:', $this->Format->los($d['ListOfSpeciesNewest']['ListOfSpecies'], true), array('controller' => 'checklists', 'action' => 'detail', $d['ListOfSpeciesNewest']['ListOfSpecies']['id']));
-        echo $this->Format->detailValue('Published name:', $this->Format->los($d['Reference']['ListOfSpecies'], true));
+        echo $this->Format->detailValue('Newest name:', $this->Format->los($d['ListOfSpeciesNewest']['ListOfSpecies'], array('italic' => true)), array('controller' => 'checklists', 'action' => 'detail', $d['ListOfSpeciesNewest']['ListOfSpecies']['id']));
+        echo $this->Format->detailValue('Published name:', $this->Format->los($d['Reference']['ListOfSpecies'], array('italic' => true)));
         echo $this->Format->detailValue('Published name (with errors):', $d['Reference']['Reference']['name_as_published']);
         ?>
         <h3>Caryology</h3>

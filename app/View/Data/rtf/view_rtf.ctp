@@ -10,9 +10,8 @@ foreach ($data as $cdata) :
     ?>
     <div class="detail taxonomy">
         <?php
-        //echo $this->Format->detailValue('', $cdata['Cdata']['id']);
-        echo $this->Format->detailValue('Name after last revision: ', $this->Format->los($cdata['ListOfSpeciesNewest']['ListOfSpecies'], true));
-        echo $this->Format->detailValue('Name as originally published (standardised version): ', $this->Format->los($cdata['Reference']['ListOfSpecies'], true));
+        echo $this->Format->detailValue('Name after last revision: ', $this->Format->los($cdata['ListOfSpeciesNewest']['ListOfSpecies'], array('italic' => true)));
+        echo $this->Format->detailValue('Name as originally published (standardised version): ', $this->Format->los($cdata['Reference']['ListOfSpecies'], array('italic' => true)));
         echo $this->Format->detailValue('Name exactly as originally published: ', $cdata['Reference']['Reference']['name_as_published']);
         ?>
     </div>
@@ -30,9 +29,9 @@ foreach ($data as $cdata) :
         echo $this->Format->detailValue('Karyotype: ', $cdata['Cdata']['karyotype']);
         ?>
         <p>
-            <span class="label">Photo:</span><span class="value"><?php echo $cdata['Cdata']['photo'] ? 'yes' : 'no'; ?></span><br />
-            <span class="label">Idiogram:</span><span class="value"><?php echo $cdata['Cdata']['idiogram'] ? 'yes' : 'no'; ?></span><br />
-            <span class="label">Drawing:</span><span class="value"><?php echo $cdata['Cdata']['drawing'] ? 'yes': 'no'; ?></span><br />
+            <span class="label">Photo:</span><span class="value"><?php echo $cdata['Cdata']['photo'] ? 'yes' : 'no'; ?></span>
+            <span class="label">Idiogram:</span><span class="value"><?php echo $cdata['Cdata']['idiogram'] ? 'yes' : 'no'; ?></span>
+            <span class="label">Drawing:</span><span class="value"><?php echo $cdata['Cdata']['drawing'] ? 'yes': 'no'; ?></span>
         </p>
     </div>
     <?php if (!empty($cdata['Dna']['method'])) : ?>

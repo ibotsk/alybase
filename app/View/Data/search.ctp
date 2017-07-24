@@ -35,7 +35,7 @@
     foreach ($results as $record) :
         $sd_name = $record['ListOfSpecies']['standardised_name'];
         $acc_name = $record['ListOfSpecies']['accepted_name'];
-        $std_name_str = $this->Format->los($sd_name, false, false);
+        $std_name_str = $this->Format->los($sd_name, array('italic' => false, 'publication' => false));
         ?>
         <tr id="<?php echo $type . '/' . $sd_name['id']; ?>">
             <td>
@@ -46,7 +46,7 @@
                 <?php
                 if (!empty($acc_name)) {
                     //echo $this->Html->link($acc_name, array('controller' => 'data', 'action' => 'chromosomes', $link, $record['ListOfSpecies']['id_link']));
-                    echo $this->Format->los($acc_name, false, false);
+                	echo $this->Format->los($acc_name, array('italic' => false, 'publication' => false));
                 } else {
                     echo $std_name_str;
                 }

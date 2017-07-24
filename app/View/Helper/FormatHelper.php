@@ -25,8 +25,14 @@ class FormatHelper extends AppHelper {
     }
 
     public function literature($lit, $options = array()) {
+    	$options = array_merge(
+    			array('link' => ''),
+    			(array)$options
+    			);
+    	
         $out = $lit['paper_author'] . ' (' . $lit['year'] . ') ' . $lit['paper_title'] . '. ';
-        if (isset($options['link'])) {
+        
+        if (!empty($options['link'])) {
             $out = $this->Html->link($out, $options['link']);
         }
         $voliss = $lit['volume'] . ($lit['issue'] ? '(' . $lit['issue'] . ')' : '');
@@ -80,13 +86,20 @@ class FormatHelper extends AppHelper {
 
     /**
      * 
-     * @param type $label
-     * @param string $value
-     * @param type $link
-     * @param type $wrap indicate whether label and value spans should be wrapped in paragraph element
+     * @param unknown $label
+     * @param unknown $value
+     * @param array $options
      * @return string
+     * 
+     * $link = false, $wrap = '', $listPrepend = '', $liclass = array(), $special = ''
      */
-    public function detailValue($label, $value, $link = false, $wrap = '', $listPrepend = '', $liclass = array(), $special = '') {
+    public function detailValue($label, $value, $options = array()) {
+    	$options = array_merge(
+    			array('arrayField' => '', 'link' => false, 'wrap' => '', 'listPrepend' => '', 'liclass' => array(),  'special' => ''),
+    			(array)$options
+    			);
+    	
+    	$wrap = $options['wrap'];
         $out = empty($wrap) ? '' : ('<' . $wrap . '>');
         if (isset($label) && !empty($label) && $label != 'null') {
             $out .= '<span class="dlabel">' . $label . '</span>';
@@ -95,7 +108,7 @@ class FormatHelper extends AppHelper {
         if (isset($value) && !empty($value) && $value != 'null') {
             $out .= '<span class="value">';
             if (is_array($value)) {
-                $out .= $this->_array($value, 'BasionymFor', $link, $listPrepend, $liclass, $special);
+                $out .= $this->_array($value, $options['arrayField'], $options);
             } else {
                 $out .= $value;
             }
@@ -105,7 +118,26 @@ class FormatHelper extends AppHelper {
         return $out;
     }
 
-    public function status($status, $accepted = array(), $italic = false, $syntype = '') {
+    /**
+     * Creates a HTML markup based on the $status
+     * @param string $status Status of the name - A = accepted, PA = provisionally accepted,
+     * U - unresolved, S - synonym, DS - doubtful synonym, B - basionym, R - replaced name, H - hybrid
+     * @param array $options Additional options: parent - defines a parent of the name in case of basionym or replaced name (e.g. X is a basionym of parent)
+     * italic - whether the parent name should be in italic
+     * is_invalid - mark synonym or doubtful synonym as Designation not validly published
+     * @return string HTML markup if status is valid, empty string otherwise
+     * 
+     * $accepted = array(), $italic = false, $syntype = ''
+     */
+    public function status($status, $options = array()) {
+    	$options = array_merge(
+    			array('parent' => array(), 'italic' => false, 'is_invalid' => false),
+    			(array)$options
+    			);
+    	
+    	$invalid = $options['is_invalid'];
+    	$parent = $options['parent'];
+    	
         $syn_out = "";
         switch ($status) {
             case 'A':
@@ -113,13 +145,13 @@ class FormatHelper extends AppHelper {
             case 'PA':
                 return '<span class="paccepted">Provisionally accepted</span>';
             case 'U':
-                $r = $syntype == '1' ? '<span class="invalid">Designation not validly published</span><br />' : '';
+            	$r = $invalid ? '<span class="invalid">Designation not validly published</span><br />' : '';
                 return $r . '<span class="unresolved">Unresolved</span>';
             case 'S':
-                $syn_out = $syntype == '1' ? '<span class="invalid">Designation not validly published</span>' : '<span class="synonym">Synonym</span>';
+            	$syn_out = $invalid ? '<span class="invalid">Designation not validly published</span>' : '<span class="synonym">Synonym</span>';
                 break;
             case 'DS':
-                $syn_out = $syntype == '1' ? '<span class="invalid">Designation not validly published</span>' : '<span class="dsynonym">Doubtful synonym</span>';
+            	$syn_out = $invalid ? '<span class="invalid">Designation not validly published</span>' : '<span class="dsynonym">Doubtful synonym</span>';
                 break;
             case 'B':
                 $syn_out = '<span class="basionym">Basionym</span>';
@@ -132,13 +164,32 @@ class FormatHelper extends AppHelper {
             default:
                 break;
         }
-        if (!empty($accepted) && $accepted['id']) {
-            $syn_out .= ' of ' . $this->Html->link($this->los($accepted, $italic), array('controller' => 'checklists', 'action' => 'detail', $accepted['id']), array('escape' => false));
+        if (!empty($parent) && $parent['id']) {
+        	$name = $this->los($parent, array('italic' => $options['italic']));
+        	$syn_out .= ' of ' . $this->Html->link($name, array('controller' => 'checklists', 'action' => 'detail', $parent['id']), array('escape' => false));
         }
         return $syn_out;
     }
 
-    public function los($name, $italic = false, $publication = true, $special = '', $tribus = true) {
+    
+    /**
+     * 
+     * @param unknown $name
+     * @param array $options
+     * @return string|unknown|string
+     * 
+     * italic, publication, special, tribus
+     */
+    public function los($name, $options = array()) {
+    	$options = array_merge(
+    			array('special' => '', 'publication' => true, 'tribus' => true, 'italic' => false, 'debug' => false),
+    			(array)$options
+    			);
+    	
+    	$special = $options['special'];
+    	$publication = $options['publication'];
+    	$tribus = $options['tribus'];
+    	
         if (isset($name['name'])) {
             return $publication ? $name['name'] . ", " . $name['publication'] : $name['name'];
         }
@@ -146,25 +197,65 @@ class FormatHelper extends AppHelper {
         if (!empty($special) && isset($name[$special]) && $name[$special]) {
             $syntype = 1;
         }
-        $out = $this->_los($italic, $name['genus'], $name['species'], $name['subsp'], $name['var'], $name['subvar'], $name['forma'], $name['authors'], $publication ? $name['publication'] : '', $name['hybrid'], $syntype, $name['genus_h'], $name['species_h'], $name['subsp_h'], $name['var_h'], $name['subvar_h'], $name['forma_h'], $name['authors_h'], $tribus && $name['tribus'] ? $name['tribus'] : '');
-        return $out;
+        $out = $this->_los($name['genus'], $name['species'], $name['subsp'], $name['var'], $name['subvar'], $name['forma'], $name['authors'], 
+        		array('publication' => ($publication ? $name['publication'] : ''), 'ishybrid' => $name['hybrid'], 'syntype' => $syntype, 
+        				'genus_h' => $name['genus_h'], 'species_h' => $name['species_h'], 'subsp_h' => $name['subsp_h'], 'var_h' => $name['var_h'], 
+        				'subvar_h' => $name['subvar_h'], 'forma_h' => $name['forma_h'], 'authors_h' => $name['authors_h'], 'tribus' => ($tribus && $name['tribus'] ? $name['tribus'] : ''),
+        				'italic' => $options['italic']
+        		));
+        //prepend id if debug is true
+        $prep = $options['debug'] && isset($name['id']) && !empty($name['id']) ? ($name['id'] . ' - ') : '';
+        return $prep . $out;
     }
 
-    public function losList($list, $italic = false, $linkField = 'id', $arrayField = 'BasionymFor', $publication = true, $special = '', $tribus = true) {
-        $out = array();
-        foreach ($list as $item) {
-            $newitem = array();
-            $newitem['id'] = $item[$linkField];
-            $newitem['name'] = $this->los($item, $italic, $publication, $special, $tribus);
-            if (!empty($item[$arrayField])) {
-                $newitem['BasionymFor'] = $this->losList($item[$arrayField], $italic, $linkField, $arrayField, $publication, $special, $tribus);
-            }
-            $out[] = $newitem;
-        }
-        return $out;
+    /**
+     * 
+     * @param unknown $list
+     * @param array $options
+     * @return string[][]|unknown[][]|string[][][][]|unknown[][][][]|NULL[][][][]
+     * 
+     * $italic = false, $linkField = 'id', $arrayField = 'BasionymFor', $publication = true, $special = '', $tribus = true
+     */
+    public function losList($list, $options = array()) {
+    	$options = array_merge(
+    			array('linkField' => 'id', 'arrayField' => '', 'special' => '', 'publication' => true, 'tribus' => true, 'italic' => false, 'debug' => false),
+    			(array)$options
+    			);
+    	$arrayField = $options['arrayField'];
+    	$out = array();
+    	foreach ($list as $item) {
+    		$newitem = array();
+    		$newitem['id'] = $item[$options['linkField']];
+    		$newitem['name'] = $this->los($item, $options);
+    		if (!empty($item[$arrayField])) {
+    			$newitem[$arrayField] = $this->losList($item[$arrayField], $options);
+    		}
+    		$out[] = $newitem;
+    	}
+    	return $out;
     }
 
-    private function _los($italic, $genus, $species, $subsp, $var, $subvar, $forma, $authors, $publication = '', $hybrid = false, $syntype = '', $genus_h = '', $species_h = '', $subsp_h = '', $var_h = '', $subvar_h = '', $forma_h = '', $authors_h = '', $tribus = '') {
+
+    private function _los($genus, $species, $subsp, $var, $subvar, $forma, $authors, $options = array()) {
+    	$options = array_merge(
+    			array('publication' => '', 'ishybrid' => false, 'syntype' => '', 'genus_h' => '',
+    					'species_h' => '', 'subsp_h' => '', 'var_h' => '', 'subvar_h' => '', 'forma_h' => '', 'authors_h' => '', 'tribus' => '', 'italic' => true),
+    			(array)$options
+    			);
+    				
+    	$publication = $options['publication'];
+    	$hybrid = $options['ishybrid'];
+    	$syntype = $options['syntype'];
+    	$genus_h = $options['genus_h'];
+    	$species_h = $options['species_h'];
+    	$subsp_h = $options['subsp_h'];
+    	$var_h = $options['var_h'];
+    	$subvar_h = $options['subvar_h'];
+    	$forma_h = $options['forma_h'];
+    	$authors_h = $options['authors_h'];
+    	$tribus = $options['tribus'];
+    	$italic = $options['italic'];
+    				
         $name = '';
         $autLast = true;
         $sl = false;
@@ -210,32 +301,61 @@ class FormatHelper extends AppHelper {
         }
         if ($hybrid) {
             $name .= " x ";
-            $name .= $this->_los($italic, $genus_h, $species_h, $subsp_h, $var_h, $subvar_h, $forma_h, $authors_h);
+            $name .= $this->_los($genus_h, $species_h, $subsp_h, $var_h, $subvar_h, $forma_h, $authors_h, array('italic' => $italic));
         }
         $name .= $syntype == '1' ? '"' : '';
         return $name . (empty($publication) ? '' : ', ' . $publication) . (empty($tribus) ? '' : ' (tribus ' . $tribus . ')');
     }
 
-    private function _array($value, $linkField, $link = false, $listPrepend = '', $liclass = array(), $special = '') {
+    private function _array($value, $linkField, $options = array()) {
+    	$options = array_merge(
+    			array('link' => false, 'listPrepend' => '', 'liclass' => array(), 'special' => ''),
+    			(array)$options
+    			);
+    	$liclass = $options['liclass'];
+    	$listPrepend = $options['listPrepend'];
+    	$special = $options['special'];
+    	
         $out = '';
         $class = empty($liclass) ? '' : $liclass[0];
+        
         if (is_array($value)) {
             $out .= '<ul>';
             foreach ($value as $v) {
-                $out .= $this->_synonym($v['name'], $v['id'], $link, $listPrepend, $class, $special, false);
+                $out .= $this->_synonym($v['name'], $v['id'], false, array('link' => $options['link'], 'listPrepend' => $listPrepend, 'special' => $special, 'liclass' => $class));
+                
                 if (isset($v[$linkField]) && !empty($v[$linkField])) {
-                    $out .= $this->_array($v[$linkField], $linkField, $link, $listPrepend, array_slice($liclass, 1), $special);
+                	$options['liclass'] = array_slice($liclass, 1);
+                    $out .= $this->_array($v[$linkField], $linkField, $options);
                 }
                 $out .= '</li>';
             }
             $out .= '</ul>';
         } else {
-            $out .= $this->_synonym($value['name'], $value['id'], $link, $listPrepend, $class, $special);
+        	$out .= $this->_synonym($value['name'], $value['id'], true, array('link' => $options['link'], 'listPrepend' => $listPrepend, 'special' => $special, 'liclass' => $class));
         }
         return $out;
     }
 
-    private function _synonym($name, $linkId, $link = false, $listPrepend = '', $liclass = '', $special = '', $close = true) {
+    /**
+     * 
+     * @param unknown $name
+     * @param unknown $linkId
+     * @param array $options
+     * @return string
+     * 
+     *  $link = false, $listPrepend = '', $liclass = '', $special = '', $close = true
+     */
+    private function _synonym($name, $linkId, $close, $options = array()) {
+    	$options = array_merge(
+    			array('link' => false, 'listPrepend' => '', 'liclass' => '', 'special' => ''),
+    			(array)$options
+    			);
+    	$link = $options['link'];
+    	$listPrepend = $options['listPrepend'];
+    	$liclass = $options['liclass'];
+    	$special = $options['special'];
+    	
         $out = '<li';
         if (!empty($special) && strpos($name, $special) !== false) {
             $out .= ' class="' . $special . '">';

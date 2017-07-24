@@ -10,7 +10,7 @@
             <col width="60%" />
             <tr>
                 <th>Chromosome count</th>
-                <th>Counted by</td>
+                <th>Counted by</th>
                 <th>Published in</th>
             </tr>
             <?php foreach ($cdata as $data) : ?>

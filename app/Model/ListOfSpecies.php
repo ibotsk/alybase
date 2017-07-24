@@ -4,6 +4,8 @@ App::uses('AppModel', 'Model');
 
 class ListOfSpecies extends AppModel {
 
+	public $actsAs = array('Containable');
+	
     public $useTable = 'list_of_species';
     public $hasMany = array(
         'History' => array(
@@ -18,20 +20,23 @@ class ListOfSpecies extends AppModel {
             'className' => 'Reference',
             'foreignKey' => 'id_standardised_name'
         ),
+    	/*	
         'Synonyms' => array(
             'className' => 'ListOfSpecies',
             'foreignKey' => 'id_accepted_name',
             'conditions' => array(
-                /*'OR' => array(*/'Synonyms.syn_type' => 2, /*array('Synonyms.syn_type' => 3, 'Synonyms.id_basionym' => null)),*/
+                //'OR' => array(
+            		'Synonyms.syn_type' => 2, 
+            		//array('Synonyms.syn_type' => 3, 'Synonyms.id_basionym' => null)),
                 'Synonyms.is_basionym' => false,
                 'Synonyms.id_superior_name' => null,
                 //'Synonyms.ntype !=' => 0
                 //array('OR' => array(
-                        /*array(
-                            array('OR' => array('Synonyms.subsp != Synonyms.species', 'Synonyms.subsp' => null)),
-                            array('OR' => array('Synonyms.var != Synonyms.species', 'Synonyms.var' => null)),
-                            array('OR' => array('Synonyms.forma != Synonyms.species', 'Synonyms.forma' => null))
-                        ),*/
+                        //array(
+                        //    array('OR' => array('Synonyms.subsp != Synonyms.species', 'Synonyms.subsp' => null)),
+                        //    array('OR' => array('Synonyms.var != Synonyms.species', 'Synonyms.var' => null)),
+                        //    array('OR' => array('Synonyms.forma != Synonyms.species', 'Synonyms.forma' => null))
+                        //),
                 //        'Synonyms.id_superior_name' => null
                 //)
             ),
@@ -39,6 +44,7 @@ class ListOfSpecies extends AppModel {
                 'Synonyms.subsp', 'Synonyms.var', 'Synonyms.subvar',
                 'Synonyms.forma', 'Synonyms.authors')
         ),
+		*/
         'SynonymsInvalid' => array(
             'className' => 'ListOfSpecies',
             'foreignKey' => 'id_accepted_name',
@@ -47,9 +53,14 @@ class ListOfSpecies extends AppModel {
                 'SynonymsInvalid.subsp', 'SynonymsInvalid.var', 'SynonymsInvalid.subvar',
                 'SynonymsInvalid.forma', 'SynonymsInvalid.authors')
         ),
-        'BasionymFor' => array(
+       
+    	'BasionymFor' => array(
             'className' => 'ListOfSpecies',
-            'foreignKey' => 'id_basionym',
+            'foreignKey' => 'id_basionym', //this species is a basionym, so we want to see to which it is basionym for
+            /*
+             * Option of having separated table for basionym and its associated names was investigated and declined
+             * as it would make things unnecessarily complicated
+             */
         //'conditions' => array('BasionymFor.ntype !=' => '')
         ),
         'NomenNovumFor' => array(
@@ -67,6 +78,16 @@ class ListOfSpecies extends AppModel {
             'order' => 'LosComment.date_posted'
         )
     );
+    
+    /*
+
+    public $hasOne = array(
+    	'Parent' => array(
+    			'className' => 'Synonym',
+    			'foreignKey' => 'id_synonym'
+    	)
+    );*/
+    
     public $belongsTo = array(
         /* 'Family' => array(
           'className' => 'Family',
@@ -84,6 +105,30 @@ class ListOfSpecies extends AppModel {
             'className' => 'ListOfSpecies',
             'foreignKey' => 'id_replaced'
         )
+    );
+    
+    public $hasAndBelongsToMany = array(
+    		/*
+    		 * All synonyms are explicitly stored in 'synonyms' table
+    		 */
+    	'SynonymsTaxonomic' => array(
+    			'className' => 'ListOfSpecies',
+    			'joinTable' => 'synonyms',
+    			'foreignKey' => 'id_parent',
+    			'associationForeignKey' => 'id_synonym',
+    			'with' => 'Synonym',
+    			'conditions' => array('Synonym.syntype' => 2),
+    			'order' => 'Synonym.rorder'
+    	),
+    	'SynonymsNomenclatoric' => array(
+    			'className' => 'ListOfSpecies',
+    			'joinTable' => 'synonyms',
+    			'foreignKey' => 'id_parent',
+    			'associationForeignKey' => 'id_synonym',
+    			'with' => 'Synonym',
+    			'conditions' => array('Synonym.syntype' => 3),
+    			'order' => 'Synonym.rorder'
+    	)
     );
 
 }

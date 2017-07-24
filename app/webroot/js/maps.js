@@ -1,5 +1,5 @@
-var prefix = "/AlyssumPortalCake/";
-//var prefix = "/";
+//var prefix = "/AlyssumPortalCake/";
+var prefix = "/";
 
 function icon(i) {
     var base = 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|';

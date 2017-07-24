@@ -12,11 +12,11 @@ $nokImg = 'nok-16.png';
             <div class="col-md-12">
                 <h4>
                     <small>Name after last revision: </small>
-                    <?php echo $this->Html->link($this->Format->los($cdata['ListOfSpeciesNewest']['ListOfSpecies'], true), array('controller' => 'checklists', 'action' => 'detail', $cdata['ListOfSpeciesNewest']['ListOfSpecies']['id']), array('escape' => false)); ?>
+                    <?php echo $this->Html->link($this->Format->los($cdata['ListOfSpeciesNewest']['ListOfSpecies'], array('italic' => true)), array('controller' => 'checklists', 'action' => 'detail', $cdata['ListOfSpeciesNewest']['ListOfSpecies']['id']), array('escape' => false)); ?>
                 </h4>
                 <h4>
                     <small>Name as originally published (standardised version): </small>
-                    <?php echo $this->Html->link($this->Format->los($cdata['Reference']['ListOfSpecies'], true), array('controller' => 'checklists', 'action' => 'detail', $cdata['Reference']['ListOfSpecies']['id']), array('escape' => false)); ?>
+                    <?php echo $this->Html->link($this->Format->los($cdata['Reference']['ListOfSpecies'], array('italic' => true)), array('controller' => 'checklists', 'action' => 'detail', $cdata['Reference']['ListOfSpecies']['id']), array('escape' => false)); ?>
                 </h4>
                 <h4>
                     <small>Name exactly as originally published: </small>

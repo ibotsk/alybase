@@ -1,11 +1,19 @@
+
+<?php 
+	$params = $this->params['pass'];
+	$debug = false;
+	if (!empty($params[1]) && $params[1] == 'debug') {
+		$debug = true;
+		echo $this->Html->link('Next', array('controller' => 'checklists', 'action' => 'detail', $params[0] + 1, 'debug'));
+	}
+?>
+
+<?php if (isset($result) && !empty($result)) : ?>
+
+
 <div id="taxonomy" class="well well-sm">
-    <h3><?php echo $this->Format->los($result['ListOfSpecies'], true, false, 'is_isonym'); ?></h3>
-    <h4><?php echo $this->Format->status($result['ListOfSpecies']['ntype'], array(), false, $result['ListOfSpecies']['syn_type']); ?></h4>
-    <!--<div class="row">
-    <?php
-    //echo $this->Format->detailValue('Status:', $this->Format->status($result['ListOfSpecies']['ntype'], array(), false, $result['ListOfSpecies']['syn_type']), false, 'div');
-    ?>
-    </div>-->
+    <h3><?php echo $this->Format->los($result['ListOfSpecies'], array('italic' => true, 'publication' => false, 'special' => 'is_isonym', 'debug' => $debug)); ?></h3>
+    <h4><?php echo $this->Format->status($result['ListOfSpecies']['ntype'], array('is_invalid' => $result['ListOfSpecies']['syn_type'] == '1')); ?></h4>
 </div>
 <div class="dblock">
     <div class="row">
@@ -21,7 +29,7 @@ if ($result['Basionym']['id']) :
         <div class="row">
             <div class="col-sm-12">
                 <?php
-                $basionym = $this->Html->link($this->Format->los($result['Basionym'], true, true), array('controller' => 'checklists', 'action' => 'detail', $result['Basionym']['id']), array('escape' => false));
+                $basionym = $this->Html->link($this->Format->los($result['Basionym'], array('italic' => true, 'debug' => $debug)), array('controller' => 'checklists', 'action' => 'detail', $result['Basionym']['id']), array('escape' => false));
                 echo $this->Format->detailValue('Basionym:', $basionym);
                 ?>
             </div>
@@ -35,7 +43,7 @@ if ($result['Replaced']['id']) :
         <div class="row">
             <div class="col-sm-12">
                 <?php
-                $replaced = $this->Html->link($this->Format->los($result['Replaced'], true, true), array('controller' => 'checklists', 'action' => 'detail', $result['Replaced']['id']), array('escape' => false));
+                $replaced = $this->Html->link($this->Format->los($result['Replaced'], array('italic' => true, 'debug' => $debug)), array('controller' => 'checklists', 'action' => 'detail', $result['Replaced']['id']), array('escape' => false));
                 echo $this->Format->detailValue('Replaced name:', $replaced);
                 ?>
             </div>
@@ -54,31 +62,53 @@ endif;
     <div class="row">
         <div class="col-sm-12">
             <?php
-            if (!empty($result['SynonymsTriple'])) :
+            if (!empty($result['SynonymsNomenclatoric'])) :
                 ?>
                 <?php
-                $tss = $this->Format->losList($result['SynonymsTriple'], true, 'id', 'BasionymFor', true, 'is_isonym');
-                echo $this->Format->detailValue('', $tss, true, '', '', array('triple', 'triple'), 'isonym');
+                $tss = $this->Format->losList($result['SynonymsNomenclatoric'], array('italic' => true, 'arrayField' => 'SynonymsNomenclatoric', 'special' => 'is_isonym', 'debug' => $debug));
+                echo $this->Format->detailValue('', $tss, array('link' => true, 'liclass' => array('triple', 'triple'), 'special' => 'isonym'));
                 ?>
                 <?php
             endif;
             if ($result['ListOfSpecies']['ntype'] == 'A' || $result['ListOfSpecies']['ntype'] == 'PA') {
-                $syns = $this->Format->losList($result['Synonyms'], true, 'id', 'BasionymFor', true, 'is_isonym');
+            	$syns = $this->Format->losList($result['SynonymsTaxonomic'], array('italic' => true, 'arrayField' => 'SynonymsNomenclatoric', 'special' => 'is_isonym', 'debug' => $debug));
                 if (!empty($syns)) {
-                    echo $this->Format->detailValue('', $syns, true, '', '', array('double', 'triple'), 'isonym');
+                    echo $this->Format->detailValue('', $syns, array('link' => true, 'arrayField' => 'SynonymsNomenclatoric', 'liclass' => array('double', 'triple'), 'special' => 'isonym'));
                 }
-                $synsInv = $this->Format->losList($result['SynonymsInvalid'], true);
+                
+                $synsInv = $this->Format->losList($result['SynonymsInvalid'], array('italic' => true, 'debug' => $debug));
                 if (!empty($synsInv)) {
                     echo '<br />';
-                    echo $this->Format->detailValue('Designations not validly published: ', $synsInv, true, 'p', '', array('invalid'));
+                    echo $this->Format->detailValue('Designations not validly published: ', $synsInv, array('link' => true, 'wrap' => 'p', 'liclass' => array('invalid')));
                 }
-            } else if ($result['Accepted']['id'] && ($result['ListOfSpecies']['ntype'] == 'S' || $result['ListOfSpecies']['ntype'] == 'DS' || ($result['ListOfSpecies'] == 'U' && $result['ListOfSpecies']['syn_type'] == null))) {
-                echo $this->Format->detailValue('Accepted name:', $this->Html->link($this->Format->los($result['Accepted'], true), array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
-            } else if ($result['Accepted']['id'] && $result['ListOfSpecies']['ntype'] == 'U' && $result['ListOfSpecies']['syn_type'] == '3') {
-                echo $this->Format->detailValue('Illegitimate, superfluous name (Art. 52) for: ', $this->Html->link($this->Format->los($result['Accepted'], true), array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
-            } else if ($result['Accepted']['id'] && $result['ListOfSpecies']['ntype'] == 'H') {
-                echo $this->Format->detailValue('', $this->Html->link($this->Format->los($result['Accepted'], true), array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
+                
+            } else if ($result['Accepted']['id']) {
+            	
+            	$name = $this->Format->los($result['Accepted'], array('italic' => true, 'debug' => $debug));
+            	$linkName = $this->Html->link($name, array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false));
+            	
+            	if ($result['ListOfSpecies']['ntype'] == 'S' || $result['ListOfSpecies']['ntype'] == 'DS' || ($result['ListOfSpecies'] == 'U' && $result['ListOfSpecies']['syn_type'] == null)) {
+            		echo $this->Format->detailValue('Accepted name:', $linkName);
+            	} else if ($result['ListOfSpecies']['ntype'] == 'U' && $result['ListOfSpecies']['syn_type'] == '3') {
+            		echo $this->Format->detailValue('Illegitimate, superfluous name (Art. 52) for: ', $linkName);
+            	} else if ($result['ListOfSpecies']['ntype'] == 'H') {
+            		echo $this->Format->detailValue('', $linkName);
+            	}
+            	
             }
+            
+            /*
+            else if ($result['Accepted']['id'] && ($result['ListOfSpecies']['ntype'] == 'S' || $result['ListOfSpecies']['ntype'] == 'DS' || ($result['ListOfSpecies'] == 'U' && $result['ListOfSpecies']['syn_type'] == null))) {
+            	$name = $this->Format->los($result['Accepted'], array('italic' => true));
+                echo $this->Format->detailValue('Accepted name:', $this->Html->link($name, array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
+            } else if ($result['Accepted']['id'] && $result['ListOfSpecies']['ntype'] == 'U' && $result['ListOfSpecies']['syn_type'] == '3') {
+            	$name = $this->Format->los($result['Accepted'], array('italic' => true));
+                echo $this->Format->detailValue('Illegitimate, superfluous name (Art. 52) for: ', $this->Html->link($name, array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
+            } else if ($result['Accepted']['id'] && $result['ListOfSpecies']['ntype'] == 'H') {
+            	$name = $this->Format->los($result['Accepted'], array('italic' => true));
+                echo $this->Format->detailValue('', $this->Html->link($name, array('controller' => 'checklists', 'action' => 'detail', $result['Accepted']['id']), array('escape' => false)));
+            }
+            */
             ?>
         </div>
     </div>
@@ -90,8 +120,8 @@ if (!empty($result['BasionymFor'])) :
         <div class="row">
             <div class="col-sm-12">
                 <?php
-                $basfor = $this->Format->losList($result['BasionymFor'], true, 'id', '', true, 'is_isonym');
-                echo $this->Format->detailValue('Basionym for:', $basfor, true);
+                $basfor = $this->Format->losList($result['BasionymFor'], array('italic' => true, 'debug' => $debug));
+                echo $this->Format->detailValue('Basionym for:', $basfor, array('link' => true));
                 ?>
             </div>
         </div>
@@ -104,8 +134,8 @@ if (!empty($result['NomenNovumFor'])) :
         <div class="row">
             <div class="col-sm-12">
                 <?php
-                $nomnovfor = $this->Format->losList($result['NomenNovumFor'], true);
-                echo $this->Format->detailValue('Nomen novum for:', $nomnovfor, true);
+                $nomnovfor = $this->Format->losList($result['NomenNovumFor'], array('italic' => true, 'debug' => $debug));
+                echo $this->Format->detailValue('Nomen novum for:', $nomnovfor, array('link' => true));
                 ?>
             </div>
         </div>
@@ -118,8 +148,8 @@ if (!empty($result['ReplacedFor'])) :
         <div class="row">
             <div class="col-sm-12">
                 <?php
-                $replacedfor = $this->Format->losList($result['ReplacedFor'], true);
-                echo $this->Format->detailValue('Replaced name for:', $replacedfor, true);
+                $replacedfor = $this->Format->losList($result['ReplacedFor'], array('italic' => true, 'debug' => $debug));
+                echo $this->Format->detailValue('Replaced name for:', $replacedfor, array('link' => true));
                 ?>
             </div>
         </div>
@@ -130,7 +160,9 @@ endif;
 <hr />
 <div class="dblock">
     <?php
-    echo $this->Form->create('ListOfSpecies', array('type' => 'post', 'url' => array('controller' => 'checklists', 'action' => 'view_rtf', 'ext' => 'rtf', 'export')));
+    $url = array('controller' => 'checklists', 'action' => 'view_rtf', 'ext' => 'rtf', 'export');
+
+    echo $this->Form->create('ListOfSpecies', array('type' => 'post', 'url' => $url));
     echo $this->Form->hidden('exportIds', array('value' => $result['ListOfSpecies']['id'], 'id' => 'exportIds'));
     echo $this->Form->end(array('label' => 'Export', 'id' => 'exportChoice', 'class' => 'btn btn-default', 'div' => false));
     ?>
@@ -179,4 +211,9 @@ endif;
         <?php echo $this->Form->end(array('label' => 'Submit', 'class' => 'btn btn-default', 'div' => false)); ?>
     </div>
 </div>
+
+<?php 
+endif;
+
+//new dBug($result);
 

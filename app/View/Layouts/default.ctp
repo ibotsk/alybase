@@ -109,7 +109,6 @@
             </div>
         </nav>
         <div id="filter" class="container">
-<?php echo $this->Session->flash(); ?>
             <?php
             if ($this->name == 'Checklists') {
                 echo $this->element('filter-checklist');

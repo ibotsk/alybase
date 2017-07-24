@@ -21,6 +21,7 @@
  */
 App::uses('Controller', 'Controller');
 App::uses('Utility', 'Utility');
+App::uses('dBug', 'dBug');
 
 /**
  * Application Controller
@@ -32,7 +33,7 @@ App::uses('Utility', 'Utility');
  * @link		http://book.cakephp.org/2.0/en/controllers.html#the-app-controller
  */
 class AppController extends Controller {
-    
+	
     public function sendJson($response) {
         $this->set('response', $response);
         // We will use no layout
